@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import './App.css';
 
 class App extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -71,7 +70,6 @@ class App extends React.Component {
     this.merge = this.merge.bind(this);
     this.addBranch = this.addBranch.bind(this);
     this.removeBranch = this.removeBranch.bind(this);
-    this.print = this.print.bind(this);
   }
 
   commit(branchName, msg) {
@@ -135,7 +133,7 @@ class App extends React.Component {
     var branch = this.state.branches.find(element => element.name === bCurrent);
 
     var colors = this.state.colors;
-    var updatedBranches = update(this.state.branches, {$push: [{name: bName, nodes: [], colorIndex: colors.index, lastNode: branch.lastNode, initialNode: 0, finalNode: 0}]});
+    var updatedBranches = update(this.state.branches, {$push: [{name: bName, nodes: [], colorIndex: colors.index, lastNode: branch.lastNode, initialNode: branch.lastNode, finalNode: 0}]});
     this.setState({branches: updatedBranches});
 
     //update color index
@@ -150,10 +148,6 @@ class App extends React.Component {
 
   removeBranch(bName) {
 
-  }
-
-  print() {
-    console.log(this.state);
   }
 
   render() {

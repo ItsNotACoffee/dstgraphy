@@ -1,6 +1,6 @@
 import React from  "react";
 import update from 'immutability-helper';
-import "./GraphMenu.css";
+import { withAlert } from 'react-alert'
 
 class GraphMenu extends React.Component {
     constructor(props) {
@@ -9,8 +9,8 @@ class GraphMenu extends React.Component {
         this.state = {
             commitName: "",
             branchName: "",
-            selectedBranch: "master",
-            selectedMerge: "",
+            selectedBranch: "master", //selected branch
+            selectedMerge: "", //selected branch to merge with
             branchList: [
                 { value: "master", name: "master"}
             ],
@@ -27,7 +27,6 @@ class GraphMenu extends React.Component {
         this.passCommit = this.passCommit.bind(this);
         this.passBranch = this.passBranch.bind(this);
         this.passMerge = this.passMerge.bind(this);
-        this.passPrint = this.passPrint.bind(this);
     }
 
     setCommitName(event) {
@@ -50,28 +49,42 @@ class GraphMenu extends React.Component {
         if (this.state.branchName !== "") {
             var index = this.state.allBranchList.findIndex(element => element.value === this.state.branchName);
             if (index === -1) {
-                this.setState({selectedMerge: this.state.branchList[0].value});
-
                 var updatedBranchList = update(this.state.branchList, {$push: [{ value: this.state.branchName, name: this.state.branchName}]});
                 this.setState({branchList: updatedBranchList});
                 updatedBranchList = update(this.state.allBranchList, {$push: [{ value: this.state.branchName, name: this.state.branchName}]});
                 this.setState({allBranchList: updatedBranchList});
+
+                this.setState({selectedMerge: updatedBranchList[0].value}); //necessary to update the selection
+                this.setState({selectedBranch: this.state.branchName});
+
                 this.props.onBranch(this.state.branchName, this.state.selectedBranch);
+            } else {
+                this.props.alert.show('Name already used by another branch!');
             }
+        } else {
+            this.props.alert.show('Branch name cannot be empty!');
         }
     }
     passMerge() {
-        if (this.state.selectedMerge !== "" && this.state.selectedMerge !== this.state.selectedBranch) {
-            this.props.onMerge(this.state.selectedBranch, this.state.selectedMerge);
+        if (this.state.selectedMerge !== "") {
+            if (this.state.selectedMerge !== this.state.selectedBranch) {
+                this.props.onMerge(this.state.selectedBranch, this.state.selectedMerge);
 
-            var index = this.state.branchList.findIndex(element => element.value === this.state.selectedBranch);
-            var updatedBranchList = update(this.state.branchList, {$splice: [[index, 1]]});
-            this.setState({branchList: updatedBranchList});
-            this.setState({selectedBranch: this.state.selectedMerge});
+                var index = this.state.branchList.findIndex(element => element.value === this.state.selectedBranch);
+                var updatedBranchList = update(this.state.branchList, {$splice: [[index, 1]]});
+                this.setState({branchList: updatedBranchList});
+                this.setState({selectedBranch: this.state.selectedMerge});
+                if (updatedBranchList.length < 2) {
+                    this.setState({selectedMerge: ""});
+                } else {
+                    this.setState({selectedMerge: updatedBranchList[0].value});
+                }
+            } else {
+                this.props.alert.show('Cannot merge a branch with itself!');
+            }
+        } else {
+            this.props.alert.show('No merge branch selected!');
         }
-    }
-    passPrint() {
-        this.props.onPrint();
     }
 
     render() {
@@ -79,7 +92,7 @@ class GraphMenu extends React.Component {
             <div className="graphMenu">
                 <div>
                     <b>Current Branch: </b>
-                    <select onChange={this.setSelectedBranch}>
+                    <select onChange={this.setSelectedBranch} value={this.state.selectedBranch}>
                         {this.state.branchList.map((e, key) => {
                             return <option key={e.value} value={e.value}>{e.name}</option>;
                         })}
@@ -94,7 +107,7 @@ class GraphMenu extends React.Component {
                     <button className="button" onClick={this.passCommit}>Commit</button>
                 </div>
                 <div>
-                    <select onChange={this.setSelectedMerge}>
+                    <select onChange={this.setSelectedMerge} value={this.state.selectedMerge}>
                         {this.state.branchList.map((e, key) => {
                             if (this.state.branchList.length < 2) {
                                 return ""
@@ -104,12 +117,9 @@ class GraphMenu extends React.Component {
                     </select>
                     <button className="button" onClick={this.passMerge}>Merge</button>
                 </div>
-                <div>
-                    <button className="button" onClick={this.passPrint}>Print graph console</button>
-                </div>
             </div>
         );
     }
 }
 
-export default GraphMenu;
+export default withAlert()(GraphMenu);
