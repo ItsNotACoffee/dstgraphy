@@ -16,13 +16,14 @@ class App extends React.Component {
           1
         ],
         colorIndex: 7,
+        level: 1, //the level the node is at - used for fixing node levels manually
         lastNode: 1, //keeps track of the last node added
         initialNode: 1, //the starting point of the branch, can be a fork
         finalNode: 0 //the final node of the branch, used when merging
       }],
       graphData: {
         nodes: [
-          { id: 1, label: "Initial Commit", title: "Initial Commit" }
+          { id: 1, label: "Initial Commit", title: "Initial Commit", level: 1 }
         ],
         edges: [] //{ from: 1, to: 2 }
       },
@@ -36,6 +37,7 @@ class App extends React.Component {
     this.options = {
       clickToUse: false,
       layout: {
+        improvedLayout: false,
         hierarchical: {
           enabled: true,
           sortMethod: "directed"
@@ -50,8 +52,8 @@ class App extends React.Component {
             border: "#ffffff"
           }
         },
-        fixed: true,
-        physics: false,
+        fixed: false,
+        physics: true,
         font: {
           color: "#ffffff"
         }
@@ -86,12 +88,15 @@ class App extends React.Component {
     branch.nodes.push(updatedNodeId);
     var lastNode = branch.lastNode;
     branch.lastNode = updatedNodeId;
+    var level = branch.level+1;
+    branch.level = level;
     var updatedBranches = update(this.state.branches, {index: {$set: branch}});
     this.setState({branches: updatedBranches});
+    console.log(level);
 
     //update graph properties
     var color = this.state.colors.cList[branch.colorIndex];
-    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: branch.name + " - " + msg, title: msg, color: color}]}});
+    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: branch.name + " - " + msg, title: msg, color: color, level: level}]}});
     updatedData = update(updatedData, {edges: {$push: [{from: lastNode, to: updatedNodeId, color: color}]}});
     this.setState({graphData: updatedData});
   }
@@ -116,13 +121,27 @@ class App extends React.Component {
     var lastNode = destBranch.lastNode;
     destBranch.lastNode = updatedNodeId;
     sourceBranch.finalNode = updatedNodeId;
+
+    var level = 0;
+    if (sourceBranch.level > destBranch.level) {
+      level = sourceBranch.level+1;
+    } else if (destBranch.level > sourceBranch.level) {
+      level = destBranch.level+1;
+    } else { //equal
+      level = destBranch.level+1;
+    }
+    destBranch.level = level;
+    console.log(destBranch.level);
+
     var updatedBranches = update(this.state.branches, {dIndex: {$set: destBranch}});
     updatedBranches = update(updatedBranches, {sIndex: {$set: sourceBranch}});
     this.setState({branches: updatedBranches});
 
+    
+
     //update graph properties
     var color = this.state.colors.cList[destBranch.colorIndex];
-    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: "Merge " + sBranch + " into " + dBranch, title: "Merge " + sBranch + " into " + dBranch, color: color}]}});
+    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: "Merge " + sBranch + " into " + dBranch, title: "Merge " + sBranch + " into " + dBranch, color: color, level: level}]}});
     updatedData = update(updatedData, {edges: {$push: [{from: lastNode, to: updatedNodeId, color: color}]}});
     color = this.state.colors.cList[sourceBranch.colorIndex];
     updatedData = update(updatedData, {edges: {$push: [{from: sourceBranch.lastNode, to: updatedNodeId, color: color}]}});
@@ -133,7 +152,7 @@ class App extends React.Component {
     var branch = this.state.branches.find(element => element.name === bCurrent);
 
     var colors = this.state.colors;
-    var updatedBranches = update(this.state.branches, {$push: [{name: bName, nodes: [], colorIndex: colors.index, lastNode: branch.lastNode, initialNode: branch.lastNode, finalNode: 0}]});
+    var updatedBranches = update(this.state.branches, {$push: [{name: bName, nodes: [], colorIndex: colors.index, level: branch.level, lastNode: branch.lastNode, initialNode: branch.lastNode, finalNode: 0}]});
     this.setState({branches: updatedBranches});
 
     //update color index
