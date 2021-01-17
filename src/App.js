@@ -3,6 +3,7 @@ import GraphMenu from './components/Graphs/GraphMenu';
 import Graph from "react-graph-vis";
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from "uuid";
+import { withAlert } from 'react-alert'
 import './App.css';
 
 class App extends React.Component {
@@ -21,57 +22,60 @@ class App extends React.Component {
         initialNode: 1, //the starting point of the branch, can be a fork
         finalNode: 0 //the final node of the branch, used when merging
       }],
+
       graphData: {
         nodes: [
           { id: 1, label: "Initial Commit", title: "Initial Commit", level: 1 }
         ],
         edges: [] //{ from: 1, to: 2 }
       },
+
       nodeId: 1, //global counter for node ids
       colors: {
         index: 0,
         cList: ["#e53935", "#43a047", "#fdd835", "#fb8c00", "#6d4c41", "#5e35b1", "#d81b60", "#63ccff"]
-      }
-    };
-
-    this.options = {
-      clickToUse: false,
-      layout: {
-        improvedLayout: false,
-        hierarchical: {
-          enabled: true,
-          sortMethod: "directed"
-        }
       },
-      nodes: {
-        shape: "hexagon",
-        color: {
-          border: "#63ccff",
-          background: "#63ccff",
-          highlight: {
-            border: "#ffffff"
+
+      options: {
+        clickToUse: false,
+        layout: {
+          improvedLayout: false,
+          hierarchical: {
+            enabled: true,
+            sortMethod: "directed"
           }
         },
-        fixed: false,
-        physics: true,
-        font: {
-          color: "#ffffff"
-        }
-      },
-      edges: {
-        color: "#ffffff",
-        width: 3
-      },
-      interaction: {
-        hover: true
-      },
-      height: "500px"
+        nodes: {
+          shape: "hexagon",
+          color: {
+            border: "#63ccff",
+            background: "#63ccff",
+            highlight: {
+              border: "#ffffff"
+            }
+          },
+          fixed: false,
+          physics: false,
+          font: {
+            color: "#ffffff"
+          }
+        },
+        edges: {
+          color: "#ffffff",
+          width: 3,
+          physics: false
+        },
+        interaction: {
+          hover: true
+        },
+        height: "530px"
+      }
     };
 
     this.commit = this.commit.bind(this);
     this.merge = this.merge.bind(this);
     this.addBranch = this.addBranch.bind(this);
-    this.removeBranch = this.removeBranch.bind(this);
+    this.togglePhysics = this.togglePhysics.bind(this);
   }
 
   commit(branchName, msg) {
@@ -165,8 +169,21 @@ class App extends React.Component {
     this.setState({colors: updatedColors});
   }
 
-  removeBranch(bName) {
-
+  togglePhysics() {
+    var options = this.state.options;
+    if (options.nodes.physics) {
+      this.props.alert.show('Physics: Off');
+      var updatedOptions = update(this.state.options, {nodes: {physics: {$set: false}}});
+      updatedOptions = update(updatedOptions, {edges: {physics: {$set: false}}});
+      this.setState({options: updatedOptions});
+    } else {
+      this.props.alert.show('Physics: On');
+      //eslint-disable-next-line
+      var updatedOptions = update(this.state.options, {nodes: {physics: {$set: true}}});
+      updatedOptions = update(updatedOptions, {edges: {physics: {$set: true}}});
+      console.log(updatedOptions);
+      this.setState({options: updatedOptions});
+    }
   }
 
   render() {
@@ -175,14 +192,14 @@ class App extends React.Component {
         <h1 className="title">DSTGraphy</h1>
         <h4 className="desc">~Simulate and visualize Github operations~</h4>
         <div>
-          <GraphMenu onBranch={this.addBranch} onCommit={this.commit} onMerge={this.merge} onPrint={this.print}/>
+          <GraphMenu onBranch={this.addBranch} onCommit={this.commit} onMerge={this.merge} onTogglePhysics={this.togglePhysics}/>
         </div>
         <div className="mainGraph">
-        <Graph key={uuidv4} graph={this.state.graphData} options={this.options}/>
+        <Graph key={uuidv4} graph={this.state.graphData} options={this.state.options}/>
         </div>
       </div>
     );
   }
 }
 
-export default App;
+export default withAlert()(App);

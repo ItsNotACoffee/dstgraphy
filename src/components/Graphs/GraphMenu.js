@@ -27,6 +27,7 @@ class GraphMenu extends React.Component {
         this.passCommit = this.passCommit.bind(this);
         this.passBranch = this.passBranch.bind(this);
         this.passMerge = this.passMerge.bind(this);
+        this.passTogglePhysics = this.passTogglePhysics.bind(this);
     }
 
     setCommitName(event) {
@@ -86,6 +87,9 @@ class GraphMenu extends React.Component {
             this.props.alert.show('No merge branch selected!');
         }
     }
+    passTogglePhysics() {
+        this.props.onTogglePhysics();
+    }
 
     render() {
         return (
@@ -116,6 +120,7 @@ class GraphMenu extends React.Component {
                         })}
                     </select>
                     <button className="button" onClick={this.passMerge}>Merge</button>
+                    <button className="button" onClick={this.passTogglePhysics}>Toggle Physics</button>
                 </div>
             </div>
         );
