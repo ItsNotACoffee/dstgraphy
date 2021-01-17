@@ -2,6 +2,12 @@
 
 Simple React.js app that simulates and visualizes Github operations using the Vis.js network
 
+## How to run
+
+1. Clone repo
+2. Run 'npm update' in the project folder
+3. Start with 'yarn start'
+
 ## Available Scripts
 
 In the project directory, you can run:
