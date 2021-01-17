@@ -25,7 +25,7 @@ class App extends React.Component {
 
       graphData: {
         nodes: [
-          { id: 1, label: "Initial Commit", title: "Initial Commit", level: 1 }
+          { id: 1, label: "Initial Commit", title: "master", level: 1 }
         ],
         edges: [] //{ from: 1, to: 2 }
       },
@@ -42,6 +42,7 @@ class App extends React.Component {
           improvedLayout: false,
           hierarchical: {
             enabled: true,
+            direction: "UD",
             sortMethod: "directed"
           }
         },
@@ -68,7 +69,7 @@ class App extends React.Component {
         interaction: {
           hover: true
         },
-        height: "530px"
+        height: "600px"
       }
     };
 
@@ -76,6 +77,7 @@ class App extends React.Component {
     this.merge = this.merge.bind(this);
     this.addBranch = this.addBranch.bind(this);
     this.togglePhysics = this.togglePhysics.bind(this);
+    this.toggleDirection = this.toggleDirection.bind(this);
   }
 
   commit(branchName, msg) {
@@ -100,7 +102,7 @@ class App extends React.Component {
 
     //update graph properties
     var color = this.state.colors.cList[branch.colorIndex];
-    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: branch.name + " - " + msg, title: msg, color: color, level: level}]}});
+    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: msg, title: branch.name, color: color, level: level}]}});
     updatedData = update(updatedData, {edges: {$push: [{from: lastNode, to: updatedNodeId, color: color}]}});
     this.setState({graphData: updatedData});
   }
@@ -145,7 +147,7 @@ class App extends React.Component {
 
     //update graph properties
     var color = this.state.colors.cList[destBranch.colorIndex];
-    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: "Merge " + sBranch + " into " + dBranch, title: "Merge " + sBranch + " into " + dBranch, color: color, level: level}]}});
+    var updatedData = update(this.state.graphData, {nodes: {$push: [{id: updatedNodeId, label: "Merge " + sBranch + " into " + dBranch, title: dBranch, color: color, level: level}]}});
     updatedData = update(updatedData, {edges: {$push: [{from: lastNode, to: updatedNodeId, color: color}]}});
     color = this.state.colors.cList[sourceBranch.colorIndex];
     updatedData = update(updatedData, {edges: {$push: [{from: sourceBranch.lastNode, to: updatedNodeId, color: color}]}});
@@ -186,13 +188,29 @@ class App extends React.Component {
     }
   }
 
+  toggleDirection() {
+    var options = this.state.options;
+    if (options.layout.hierarchical.direction === "UD") {
+      this.props.alert.show('Direction: Left-Right');
+      var updatedOptions = update(this.state.options, {layout: {hierarchical: {direction: {$set: "LR"}}}});
+      this.setState({options: updatedOptions});
+    } else {
+      this.props.alert.show('Direction: Up-Down');
+      //eslint-disable-next-line
+      var updatedOptions = update(this.state.options, {layout: {hierarchical: {direction: {$set: "UD"}}}});
+      this.setState({options: updatedOptions});
+    }
+  }
+
   render() {
     return (
       <div className="App">
-        <h1 className="title">DSTGraphy</h1>
-        <h4 className="desc">~Simulate and visualize Github operations~</h4>
+        <div className="titleHolder">
+          <h1 className="title">DSTGraphy</h1>
+          <h4 className="desc">~Simulate and visualize Github operations~</h4>
+        </div>
         <div>
-          <GraphMenu onBranch={this.addBranch} onCommit={this.commit} onMerge={this.merge} onTogglePhysics={this.togglePhysics}/>
+          <GraphMenu onBranch={this.addBranch} onCommit={this.commit} onMerge={this.merge} onTogglePhysics={this.togglePhysics} onToggleDirection={this.toggleDirection}/>
         </div>
         <div className="mainGraph">
         <Graph key={uuidv4} graph={this.state.graphData} options={this.state.options}/>

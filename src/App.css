@@ -1,3 +1,5 @@
+@import url("../node_modules/vis-network/dist/vis-network.min.css");
+
 html {
 	background-color: #282c34;
 }
@@ -32,6 +34,25 @@ b {
   margin-top: 10px;
 }
 
+.graphMenu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.extraControls {
+  display: block;
+  margin-left: 40px;
+}
+
+.desc {
+  margin-top: 0px;
+}
+
+.title {
+  margin-bottom: 5px;
+}
+
 select {
   margin-left: 5px;
   border: none;
@@ -50,4 +71,12 @@ select {
 
 .mainGraph {
 	margin-top: 20px;
+}
+
+.redTxt {
+  color: red;
+}
+
+.GreenTxt {
+  color: green;
 }
